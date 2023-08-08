@@ -19,6 +19,7 @@ known_ext_list = []
 unknown_ext_list = []
 #ignore_list = ['archives', 'video', 'audio', 'documents', 'images']
 ignore_list = []
+known_ext = {}
 
 def normalize(f_name):
     f_new = f_name.translate(trans)
@@ -55,6 +56,8 @@ def delete_empty_dirs(path):
             continue
         if p.is_dir():
             delete_empty_dirs(p)
+            #Можна виконати перевірку чи папка порожня, але Python Pathlib все одно не видалить папку якщо вона не порожня
+            #if list(p.iterdir()) == []:
             try:
                 p.rmdir()
             except:
@@ -72,7 +75,6 @@ def unpack_archives():
             except:
                 print(f'Folder "{p.name}" already exists!')
         
-    
 # Основна функція сортування
 def sort_files(path):
     for p in path.iterdir():
@@ -92,29 +94,32 @@ def sort_files(path):
             else:
                 unknown_ext_list.append(p.suffix.upper()[1:])
 
-        
-# Підготовка набору символів транслітерації
-for cyr, lat in zip(CYRILLIC_SYMBOLS, TRANSLATION):
-    trans[ord(cyr)] = lat
-    trans[ord(cyr.upper())] = lat.upper()
+def main():
+    global trans
+    global known_ext
+    global ignore_list
+    global global_path       
+    # Підготовка набору символів транслітерації
+    for cyr, lat in zip(CYRILLIC_SYMBOLS, TRANSLATION):
+        trans[ord(cyr)] = lat
+        trans[ord(cyr.upper())] = lat.upper()
 
-# Підготовка списку відомих розширень файлів
-known_ext = {}
-for f_type, f_extentions in files_groups.items():
-    for f_extention in f_extentions:
-        known_ext[f_extention] = f_type
+    # Підготовка списку відомих розширень файлів
+    for f_type, f_extentions in files_groups.items():
+        for f_extention in f_extentions:
+            known_ext[f_extention] = f_type
 
-# Формуємо перелік папок для створення
-for el in files_groups.keys():
-    ignore_list.append(el)
+    # Формуємо перелік папок для створення
+    for el in files_groups.keys():
+        ignore_list.append(el)
 
-if __name__ == "__main__":
     print('---Script start working---')
     try:     
         path_str = sys.argv[1]
         global_path = Path(path_str)
     except:
         print('Path parametr not found')
+        return
 
     if global_path.exists():
         create_dirs(global_path)
@@ -124,3 +129,6 @@ if __name__ == "__main__":
     else:
         print(f'Path not found {path_str}')
     print('---Script stop working---')
+
+if __name__ == "__main__":
+    main()
